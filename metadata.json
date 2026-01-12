@@ -1,0 +1,5 @@
+{
+  "name": "SceneScout",
+  "description": "A powerful video analysis tool that detects scene boundaries client-side and uses Gemini 2.5 Flash to generate descriptive structured prompts for each scene.",
+  "requestFramePermissions": []
+}
