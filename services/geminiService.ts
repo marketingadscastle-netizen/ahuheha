@@ -72,39 +72,38 @@ export const analyzeSceneFrame = async (base64Image: string): Promise<SceneAnaly
             },
           },
           {
-            text: `Analyze this video frame with ABSOLUTE PHOTOREALISTIC PRECISION. 
+            text: `Perform a FORENSIC OPTICAL ANALYSIS of this frame.
             
-            Your task is to reverse-engineer the image into a prompt so detailed that a generative model could recreate this exact frame 1:1 without seeing the original.
-
-            CRITICAL RULES FOR 'imagePrompt':
-            1. OBJECTIVE REALITY: Describe ONLY what is strictly visible. Do not interpret emotional meaning unless it is physically visible in facial expressions.
-            2. TECHNICAL CINEMATOGRAPHY: You MUST specify the estimated focal length (e.g., 35mm, 85mm), aperture (e.g., f/1.8), lighting type (e.g., Rembrandt, Chiaroscuro, harsh sunlight), and film grain/noise profile.
-            3. SURFACE TEXTURE: Describe specific materials (e.g., "brushed aluminum with fingerprints," "distressed denim with white stitching," "porous concrete with moss").
-            4. LIGHTING PHYSICS: Describe exactly where the light hits, the falloff, the shadow hardness, and any volumetric fog or atmospheric haze.
-            5. COLOR GRADING: Describe the color palette using precise terms (e.g., "teal and orange contrast," "desaturated bleach bypass look," "neon cyberpunk aesthetic").
-
-            CRITICAL RULES FOR 'videoPrompt':
-            1. Describe the CAMERA MOVEMENT implied by motion blur or perspective (e.g., "slow dolly in," "handheld shaker," "static tripod").
-            2. Describe SUBJECT MOVEMENT physics (e.g., "cloth flapping in wind," "rapid eye movement," "particles floating upward").
+            GOAL: Generate an 'imagePrompt' that yields a PIXEL-PERFECT clone of this image when used in a generator.
             
-            Match this exact JSON structure:
+            STRICT REQUIREMENTS:
+            1. **GEOMETRY & SPATIAL MAPPING**: Describe the exact position of objects (e.g., "lower left quadrant," "centered in foreground").
+            2. **MATERIAL PHYSICS**: Describe textures with tactile precision (e.g., "oxidized copper with verdigris," "matte plastic with oil smudges," "translucent skin with subsurface scattering").
+            3. **LIGHTING TOPOLOGY**: Identify every light source, its temperature (Kelvin), direction, hardness, and how it interacts with surfaces (specular highlights, diffuse shadows).
+            4. **OPTICAL CHARACTERISTICS**: Estimate focal length (mm), aperture (f-stop), depth of field blur, lens flares, and chromatic aberration.
+            5. **COLORIMETRY**: Use specific color names or hex codes if possible. Describe grading (e.g., "high contrast bleach bypass," "teal-orange cinematic lut").
+
+            For 'videoPrompt', describe the KINETIC ENERGY:
+            - Camera motion vector (e.g., "dolly forward 50cm/s").
+            - Object momentum and weight.
+            - Atmospheric turbulence (wind, dust drift).
+            
+            OUTPUT JSON STRUCTURE:
             {
-              "imagePrompt": "A raw, photorealistic shot of [subject] in [environment]. Shot on [camera/lens]. Lighting is [specific setup]. Textures include [details]. [Color grading info].",
-              "videoPrompt": "The camera [specific move]. The subject [specific action]. Physics: [specific interaction].",
-              "keywords": ["tag1", "tag2"],
+              "imagePrompt": "A hyper-realistic, forensic description of [subject] in [environment]. Shot on [camera/lens]. Lighting is [specific setup]. Textures include [details]. [Color grading info].",
+              "videoPrompt": "Cinematic movement description...",
+              "keywords": ["specific_material", "specific_lighting", "specific_camera"],
               "mood": "string",
               "visualStyle": "string",
               "objects": [{"color": "string", "label": "string"}],
               "subjects": [{"name": "string", "description": "string", "action": "string"}],
               "originalCard": {"title": "string", "shotType": "string", "cameraAngle": "string", "lighting": "string"}
-            }
-
-            For 'originalCard', use standard film industry terminology.`
+            }`
           }
         ],
       },
       config: {
-        systemInstruction: "You are an elite Computer Vision Specialist and Cinematographer. Your output must be a factual, dense, and technically accurate reconstruction of the input. Avoid flowery language; prefer technical descriptions.",
+        systemInstruction: "You are a specialized Computer Vision AI focused on photorealistic reconstruction. You do not hallucinate. You describe exactly what pixels are present.",
         responseMimeType: "application/json",
         safetySettings: SAFETY_SETTINGS,
         maxOutputTokens: 8192,
@@ -172,21 +171,18 @@ export const analyzeSceneFrame = async (base64Image: string): Promise<SceneAnaly
 };
 
 export const generateTimelapsePrompt = async (sceneImages: string[]): Promise<string> => {
-  // sceneImages is an array of base64 strings representing the flow from Start Frame to End Frame
-  
   const contents = [];
   
-  contents.push({ text: "Analyze this sequence of video frames. They are provided in chronological order. Treat this as a strict timeline to generate a MORPHING/TIMELAPSE prompt." });
+  contents.push({ text: "TIMELINE ANALYSIS: You are analyzing a chronological sequence of frames. Your output must describe the visual METAMORPHOSIS with scientific precision." });
 
   sceneImages.forEach((img, idx) => {
     const cleanData = img.replace(/^data:image\/(png|jpeg|jpg);base64,/, "");
-    // Avoid division by zero if only 1 image
     const percentage = sceneImages.length > 1 ? Math.round((idx / (sceneImages.length - 1)) * 100) : 0;
-    contents.push({ text: `Frame ${idx + 1} (${percentage}% timeline):` });
+    contents.push({ text: `T=${percentage}%:` });
     contents.push({ inlineData: { mimeType: "image/jpeg", data: cleanData } });
   });
 
-  contents.push({ text: "Generate a single, precise 'Timelapse Prompt'. \n\nREQUIREMENTS:\n1. Describe the EXACT evolution of the scene.\n2. Mention specifically which objects move, how the light shifts, and how the atmosphere changes from start to end.\n3. Include technical instructions for the transition (e.g., 'smooth interpolation', 'fast-forward motion').\n4. The output must allow a video model to bridge the gap between the first frame and last frame seamlessly while maintaining the exact visual identity of the scene." });
+  contents.push({ text: "Generate a 'Morphing Prompt' that describes the flow from the first frame to the last.\n\nREQUIREMENTS:\n1. Describe the EXACT trajectory of moving objects.\n2. Describe the continuous change in lighting intensity and color.\n3. Describe any camera movement (e.g., 'The camera pushes in while panning left').\n4. The prompt must serve as a functional instruction set for a video interpolation model to reconstruct the missing frames perfectly." });
 
   try {
     const response = await ai.models.generateContent({
@@ -195,8 +191,8 @@ export const generateTimelapsePrompt = async (sceneImages: string[]): Promise<st
       config: { 
         safetySettings: SAFETY_SETTINGS,
         maxOutputTokens: 2048,
-        temperature: 0.4, // Lower temperature for more precision/consistency
-        systemInstruction: "You are a Timelapse Specialist. You analyze frame deltas and describe the physical transformation over time with high precision."
+        temperature: 0.3, 
+        systemInstruction: "You are a Temporal Reconstruction AI. You analyze frame deltas and output precise motion vectors and state changes."
       }
     });
     return response.text || "Failed to generate timelapse prompt.";
